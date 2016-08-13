@@ -560,7 +560,7 @@ function sendButtonMessage(recipientId, message) {
     payload: "DEVELOPED_DEFINED_PAYLOAD"
   }];
 
-  const phone = message.exec(/(02[\-\d]+)/gi);
+  const phone = /(02[\-\d]+)/gi.exec(message);
   if (phone) {
     buttons.push({
       type: "phone_number",
@@ -578,7 +578,7 @@ function sendButtonMessage(recipientId, message) {
         type: "template",
         payload: {
           template_type: "button",
-          text: "This is test text",
+          text: message,
           buttons,
         }
       }
