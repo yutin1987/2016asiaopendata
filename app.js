@@ -525,7 +525,7 @@ function sendFileMessage(recipientId) {
 function sendTextMessage(recipientId, messageText) {
   const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理|哪裡|可以)/gi, ''));
   if (ans.length > 0) {
-    sendButtonMessage(recipientId, ans[0].answer.replace(/\s/gi, ' '));
+    sendButtonMessage(recipientId, ans[0].answer.substr(0, 200));
     return;
   }
 
