@@ -524,7 +524,16 @@ function sendFileMessage(recipientId) {
  */
 function sendTextMessage(recipientId, messageText) {
   if (/^(Hello|你好|嗨|hi|請問)$/gi.test(messageText)) {
-    sendButtonMessage(recipientId, '你好! 我是不是很可愛.');
+    callSendAPI({
+      recipient: {
+        id: recipientId
+      },
+      message: {
+        text: '你好! 我是不是很可愛',
+        metadata: "DEVELOPER_DEFINED_METADATA"
+      }
+    });
+
     return;
   }
 
