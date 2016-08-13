@@ -523,6 +523,11 @@ function sendFileMessage(recipientId) {
  *
  */
 function sendTextMessage(recipientId, messageText) {
+  if (/^(Hello|你好|嗨|hi|請問)$/gi.test(messageText)) {
+    sendButtonMessage(recipientId, '你好! 我是不是很可愛.');
+    return;
+  }
+
   const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理|哪裡|可以)/gi, ''));
   if (ans.length > 0) {
     sendButtonMessage(recipientId, ans[0].answer.substr(0, 200) + (ans[0].answer.length > 200 ? '...' : ''));
