@@ -33,8 +33,8 @@ const list = [212286722,211933568,211915136,1187030,1187026,1082432,915396,91539
 
 let total = 0;
 function fetchItem(idx) {
-  if (idx >= 800) {
-    fs.writeFileSync(`./1999taipei-data3.json`, JSON.stringify(data));
+  if (idx >= 1000) {
+    fs.writeFileSync(`./1999taipei-data4.json`, JSON.stringify(data));
     return;
   }
 
@@ -66,4 +66,4 @@ function fetchItem(idx) {
     setTimeout(() => fetchItem(idx + 1), 100);
   });
 }
-fetchItem(400);
+fetchItem(800);

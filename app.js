@@ -563,13 +563,21 @@ function sendButtonMessage(recipientId, message) {
     payload: "BOT_DEFINED_PAYLOAD"
   }];
 
-  const phone = /02([\-\d]{6,})/gi.exec(message);
+  let phone;
+  const phone1 = /02([\-\d]{8,})/gi.exec(message);
+  if (phone) phone = phone1[1].replace('-', '');
+
+  const phone2 = /([\d]{8})/gi.exec(message);
+  if (phone) phone = phone2[1]
+
+  const phone3 = /([\d]{4}-[\d]{4})/gi.exec(message);
+  if (phone) phone = phone3[1].replace('-', '');
+
   if (phone) {
-    console.log("+8862" + phone[1].replace('-', ''));
     buttons.push({
       type: "phone_number",
-      title: "撥打至02-" + phone[1].replace(/^-/gi, ''),
-      payload: "+8862" + phone[1].replace('-', ''),
+      title: "撥打至02-" + phone,
+      payload: "+8862" + phone,
     })
   }
 
