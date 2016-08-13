@@ -259,6 +259,7 @@ function receivedMessage(event) {
     // If we receive a text message, check to see if it matches any special
     // keywords and send back the corresponding example. Otherwise, just echo
     // the text we received.
+    console.log(messageText);
     switch (messageText) {
       case 'image':
         sendImageMessage(senderID);
@@ -310,10 +311,6 @@ function receivedMessage(event) {
 
       case 'account linking':
         sendAccountLinking(senderID);
-        break;
-      case '這不是我要的回答':
-      case '謝謝，這對我有幫助':
-        break;
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -562,12 +559,13 @@ function sendButtonMessage(recipientId, message) {
     payload: "DEVELOPED_DEFINED_PAYLOAD"
   }];
 
-  const phone = /(02[\-\d]+)/gi.exec(message);
+  const phone = /02([\-\d]+)/gi.exec(message);
   if (phone) {
+    console.log("+8862" + phone[1].replace('-', ''));
     buttons.push({
       type: "phone_number",
       title: "Call Phone Number",
-      payload: "+" + phone[1].replace('-', ''),
+      payload: "+8862" + phone[1].replace('-', ''),
     })
   }
 
