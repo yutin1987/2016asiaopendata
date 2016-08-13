@@ -254,6 +254,10 @@ function receivedMessage(event) {
     return;
   }
 
+  if (metadata === 'DEVELOPER_DEFINED_METADATA') {
+    return;
+  }
+
   if (messageText) {
 
     // If we receive a text message, check to see if it matches any special
@@ -311,9 +315,6 @@ function receivedMessage(event) {
 
       case 'account linking':
         sendAccountLinking(senderID);
-
-      case 'DEVELOPER_DEFINED_PAYLOAD':
-        break;
 
       default:
         sendTextMessage(senderID, messageText);
