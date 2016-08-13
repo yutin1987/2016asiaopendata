@@ -568,7 +568,7 @@ function sendButtonMessage(recipientId, message) {
     console.log("+8862" + phone[1].replace('-', ''));
     buttons.push({
       type: "phone_number",
-      title: "撥打至02-" + phone[1],
+      title: "撥打至02-" + phone[1].replace(/^-/gi, ''),
       payload: "+8862" + phone[1].replace('-', ''),
     })
   }
