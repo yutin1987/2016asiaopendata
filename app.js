@@ -524,7 +524,7 @@ function sendFileMessage(recipientId) {
  *
  */
 function sendTextMessage(recipientId, messageText) {
-  const ans = qna.search(messageText);
+  const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理)/gi, ''));
   var messageData = {
     recipient: {
       id: recipientId
