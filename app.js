@@ -16,13 +16,18 @@ const
   crypto = require('crypto'),
   express = require('express'),
   https = require('https'),
-  request = require('request');
+  request = require('request'),
+  Fuse = require('fuse.js');
+
+const taipei1999 = require('./data/taipei1999.json');
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
+
+const qna = new Fuse(taipei1999, { keys: ['question'] });
 
 /*
  * Be sure to setup your config values before running this code. You can
@@ -519,12 +524,13 @@ function sendFileMessage(recipientId) {
  *
  */
 function sendTextMessage(recipientId, messageText) {
+  const ans = qna.search(messageText);
   var messageData = {
     recipient: {
       id: recipientId
     },
     message: {
-      text: messageText,
+      text: ans.length > 0 ? ans[0].answer : '問題有點複雜，將請專人處理（抓頭',
       metadata: "DEVELOPER_DEFINED_METADATA"
     }
   };
