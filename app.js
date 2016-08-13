@@ -563,7 +563,7 @@ function sendButtonMessage(recipientId, message) {
     payload: "BOT_DEFINED_PAYLOAD"
   }];
 
-  const phone = /02([\-\d]+){6}/gi.exec(message);
+  const phone = /02([\-\d]{6,})/gi.exec(message);
   if (phone) {
     console.log("+8862" + phone[1].replace('-', ''));
     buttons.push({
