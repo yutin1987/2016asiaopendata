@@ -559,12 +559,12 @@ function sendButtonMessage(recipientId, message) {
     payload: "DEVELOPED_DEFINED_PAYLOAD"
   }];
 
-  const phone = /02([\-\d]+)/gi.exec(message);
+  const phone = /02([\-\d]+){6}/gi.exec(message);
   if (phone) {
     console.log("+8862" + phone[1].replace('-', ''));
     buttons.push({
       type: "phone_number",
-      title: "Call Phone Number",
+      title: "撥打至02-" + phone[1],
       payload: "+8862" + phone[1].replace('-', ''),
     })
   }
