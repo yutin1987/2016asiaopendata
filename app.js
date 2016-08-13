@@ -565,13 +565,13 @@ function sendButtonMessage(recipientId, message) {
 
   let phone;
   const phone1 = /02([\-\d]{8,})/gi.exec(message);
-  if (phone) phone = phone1[1].replace('-', '');
+  if (phone1) phone = phone1[1].replace('-', '');
 
   const phone2 = /([\d]{8})/gi.exec(message);
-  if (phone) phone = phone2[1]
+  if (phone2) phone = phone2[1]
 
   const phone3 = /([\d]{4}-[\d]{4})/gi.exec(message);
-  if (phone) phone = phone3[1].replace('-', '');
+  if (phone3) phone = phone3[1].replace('-', '');
 
   if (phone) {
     buttons.push({
