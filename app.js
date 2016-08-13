@@ -556,6 +556,10 @@ function sendButtonMessage(recipientId, message) {
     type: "postback",
     title: "這不是我要的回答",
     payload: "DEVELOPED_DEFINED_PAYLOAD"
+  }, {
+    type: "postback",
+    title: "謝謝，這對我有幫助",
+    payload: "DEVELOPED_DEFINED_PAYLOAD"
   }];
 
   const phone = /(02[\-\d]+)/gi.exec(message);
@@ -577,7 +581,7 @@ function sendButtonMessage(recipientId, message) {
         payload: {
           template_type: "button",
           text: message,
-          buttons,
+          buttons: buttons,
         }
       }
     }
