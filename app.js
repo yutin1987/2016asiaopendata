@@ -311,6 +311,10 @@ function receivedMessage(event) {
 
       case 'account linking':
         sendAccountLinking(senderID);
+
+      case 'BOT_DEFINED_PAYLOAD':
+        break;
+
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -552,11 +556,11 @@ function sendButtonMessage(recipientId, message) {
   const buttons = [{
     type: "postback",
     title: "這不是我要的回答",
-    payload: "DEVELOPED_DEFINED_PAYLOAD"
+    payload: "BOT_DEFINED_PAYLOAD"
   }, {
     type: "postback",
     title: "謝謝，這對我有幫助",
-    payload: "DEVELOPED_DEFINED_PAYLOAD"
+    payload: "BOT_DEFINED_PAYLOAD"
   }];
 
   const phone = /02([\-\d]+){6}/gi.exec(message);
