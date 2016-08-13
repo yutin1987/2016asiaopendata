@@ -311,7 +311,9 @@ function receivedMessage(event) {
       case 'account linking':
         sendAccountLinking(senderID);
         break;
-
+      case '這不是我要的回答':
+      case '謝謝，這對我有幫助':
+        break;
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -524,13 +526,18 @@ function sendFileMessage(recipientId) {
  *
  */
 function sendTextMessage(recipientId, messageText) {
-  const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理)/gi, ''));
+  const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理|哪裡|可以)/gi, ''));
+  if (ans.length > 0) {
+    sendButtonMessage(recipientId, ans[0].answer);
+    return;
+  }
+
   var messageData = {
     recipient: {
       id: recipientId
     },
     message: {
-      text: ans.length > 0 ? ans[0].answer : '問題有點複雜，將請專人處理（抓頭',
+      text: '問題有點複雜，將請專人處理（抓頭',
       metadata: "DEVELOPER_DEFINED_METADATA"
     }
   };
@@ -542,7 +549,26 @@ function sendTextMessage(recipientId, messageText) {
  * Send a button message using the Send API.
  *
  */
-function sendButtonMessage(recipientId) {
+function sendButtonMessage(recipientId, message) {
+  const buttons = [{
+    type: "postback",
+    title: "這不是我要的回答",
+    payload: "DEVELOPED_DEFINED_PAYLOAD"
+  }, {
+    type: "postback",
+    title: "謝謝，這對我有幫助",
+    payload: "DEVELOPED_DEFINED_PAYLOAD"
+  }];
+
+  const phone = message.exec(/(02[\-\d]+)/gi);
+  if (phone) {
+    buttons.push({
+      type: "phone_number",
+      title: "Call Phone Number",
+      payload: "+" + phone[1].replace('-', ''),
+    })
+  }
+
   var messageData = {
     recipient: {
       id: recipientId
@@ -553,19 +579,7 @@ function sendButtonMessage(recipientId) {
         payload: {
           template_type: "button",
           text: "This is test text",
-          buttons:[{
-            type: "web_url",
-            url: "https://www.oculus.com/en-us/rift/",
-            title: "Open Web URL"
-          }, {
-            type: "postback",
-            title: "Trigger Postback",
-            payload: "DEVELOPED_DEFINED_PAYLOAD"
-          }, {
-            type: "phone_number",
-            title: "Call Phone Number",
-            payload: "+16505551234"
-          }]
+          buttons,
         }
       }
     }
