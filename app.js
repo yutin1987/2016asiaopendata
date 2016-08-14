@@ -21,6 +21,9 @@ const
   _ = require('lodash');
 
 const client = require('redis').createClient(process.env.REDIS_URL);
+client.on("error", function (err) {
+  console.log("Error " + err);
+});
 
 const taipei1999 = require('./data/taipei1999.json');
 const service = require('./data/service.json');
@@ -531,7 +534,7 @@ function receivedPostback(event) {
       break;
     case "DEFINED_PAYLOAD_ENTER_ADAPTER":
       sendTextMessage(senderID, "請直接告訴我，想辦理的業務事項 (=^_^=)");
-      client.set(senderID, 'adapter', 60);
+      client.set(senderID, 'adapter');
       break;
     case "DEFINED_PAYLOAD_ENTER_PETITION":
       sendTextMessage(senderID, "請直接告訴我，申訴的事情 (=^_^=)");
