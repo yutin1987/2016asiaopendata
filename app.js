@@ -552,7 +552,7 @@ function receivedPostback(event) {
 /*
  * Send Reply
  */
-function sendReply(recipientId, keywords) {
+async function sendReply(recipientId, keywords) {
   console.log('recipientId', recipientId);
 
   const regHello = new RegExp('(' + hello.join('|', 'gi') + ')', 'gi');
@@ -576,20 +576,19 @@ function sendReply(recipientId, keywords) {
       return;
     }
 
-    let idx = 0;
-    let lpush;
-    client.del('answer::' + recipientId, () => {
-      lpush = () => {
+    try {
+      await client.del('answer::' + recipientId);
+      for (var i = 0; i < 5; i++) {
         const item = ans.pop();
-        if (item && idx < 5) {
-          client.lpush('answer::' + recipientId, item.answer, lpush);
-          idx += 1;
-          return;
+        if (item) {
+          await client.lpush('answer::' + recipientId, item.answer);
         }
-
-        sendConsultant(recipientId);
       }
-    })
+    } catch (e) {
+      console.log('error', e);
+    } finally {
+      sendConsultant(recipientId);
+    }
   });
 }
 
