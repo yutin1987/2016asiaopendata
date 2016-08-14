@@ -330,7 +330,7 @@ function receivedMessage(event) {
         sendAccountLinking(senderID);
 
       default:
-        sendReply(senderID, _.trim(_.replace(messageText, pleonasm, ' ')));
+        sendReply(senderID, _.trim(_.replace(messageText, pleonasm, '')));
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
