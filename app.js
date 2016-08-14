@@ -525,6 +525,9 @@ function receivedPostback(event) {
   // When a postback is called, we'll send a message back to the sender to
   // let them know it was successful
 
+  console.log('senderID', senderID);
+  console.log('recipientID', recipientID);
+  console.log('payload', payload);
   switch (payload) {
     case "DEFINED_PAYLOAD_ENTER_CONSULTANT":
       sendTextMessage(senderID, "請直接告訴我，想諮詢的問題 (=^_^=)");
@@ -550,6 +553,8 @@ function receivedPostback(event) {
  * Send Reply
  */
 function sendReply(recipientId, keywords) {
+  console.log('recipientId', recipientId);
+
   const regHello = new RegExp('(' + hello.join('|', 'gi') + ')', 'gi');
   if (_.trim(_.replace(keywords, regHello, '')) === '') {
     sendHelloMessage(recipientId);
@@ -583,8 +588,7 @@ function sendHelloMessage(recipientId) {
     '(>////<) 需要什麼服務呢？'
   ];
 
-  console.log(ans[_.random(0, ans.length - 1)]);
-
+  console.log('recipientId', recipientId);
   callSendAPI({
     recipient: {
       id: recipientId
@@ -603,14 +607,6 @@ function sendHelloMessage(recipientId) {
             type: "postback",
             title: "轉接業務單位",
             payload: "DEFINED_PAYLOAD_ENTER_ADAPTER"
-          },{
-            type: "postback",
-            title: "申訴陳情舉發",
-            payload: "DEFINED_PAYLOAD_ENTER_PETITION"
-          },{
-            type: "postback",
-            title: "即時現場派工",
-            payload: "DEFINED_PAYLOAD_ENTER_ASSIGN"
           }],
         }
       }
