@@ -546,7 +546,7 @@ function receivedPostback(event) {
  * Send Reply
  */
 function sendReply(recipientId, keywords) {
-  const regHello = new RegExp(hello.join('|', 'gi'));
+  const regHello = new RegExp('(' + hello.join('|', 'gi') + ')', 'gi');
   if (_.trim(_.replace(keywords, regHello, '')) === '') {
     sendHelloMessage(recipientId);
     return;
@@ -654,6 +654,8 @@ function sendConsultant(recipientId, keywords) {
     setTimeout(() => sendHelloMessage(recipientId), 1000);
     return;
   }
+
+  const message = ans[0].answer;
 
   const buttons = [{
     type: "postback",
