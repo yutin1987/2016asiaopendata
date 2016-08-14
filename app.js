@@ -576,7 +576,7 @@ function sendReply(recipientId, keywords) {
     }
 
     for (var i = 0; i < 5; i++) {
-      const item = temp.pop();
+      const item = ans.pop();
       client.lpush('answer::' + recipientId, item.answer);
     }
 
@@ -672,11 +672,6 @@ function sendService(recipientId, keywords) {
 }
 
 function sendConsultant(recipientId) {
-  console.log(cacheAns[recipientId]);
-  if (!cacheAns[recipientId] || cacheAns[recipientId].length <=  0) {
-    return;
-  }
-
   client.lpop('answer::' + recipientId, (err, message) => {
     console.log('answer', err, message);
     if (err || !message) {
