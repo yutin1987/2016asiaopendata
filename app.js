@@ -20,13 +20,14 @@ const
   Fuse = require('fuse.js'),
   _ = require('lodash');
 
+const client = require('redis').createClient(process.env.REDIS_URL);
+
 const taipei1999 = require('./data/taipei1999.json');
 const service = require('./data/service.json');
 
 const pleonasm = new RegExp('(' + require('./data/pleonasm.json').join('|') + ')', 'gi');
 const hello = ['嗨', '你好', '早安', '安安', 'hi', 'hello', '早', '請問'];
 
-const listener = {};
 const cacheAns = {};
 
 var app = express();
@@ -530,7 +531,7 @@ function receivedPostback(event) {
       break;
     case "DEFINED_PAYLOAD_ENTER_ADAPTER":
       sendTextMessage(senderID, "請直接告訴我，想辦理的業務事項 (=^_^=)");
-      listener[senderID] = Date.now() + (60 * 1000);
+      client.set(senderID, 'adapter', 60);
       break;
     case "DEFINED_PAYLOAD_ENTER_PETITION":
       sendTextMessage(senderID, "請直接告訴我，申訴的事情 (=^_^=)");
@@ -557,21 +558,24 @@ function sendReply(recipientId, keywords) {
     return;
   };
 
-  if (listener[recipientId] <= Date.now()) {
-    sendService(recipientId, keywords);
-    return;
-  }
+  client.get(senderID, (err, reply) => {
+    console.log(reply);
+    if (!err && reply === 'adapter') {
+      sendService(recipientId, keywords);
+      return;
+    }
 
-  const ans = qna.search(keywords);
-  if (ans.length <= 0) {
-    sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
-    setTimeout(() => sendHelloMessage(recipientId), 1000);
-    return;
-  }
+    const ans = qna.search(keywords);
+    if (ans.length <= 0) {
+      sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
+      setTimeout(() => sendHelloMessage(recipientId), 1000);
+      return;
+    }
 
-  cacheAns[recipientId] = _.take(ans, 5);
+    cacheAns[recipientId] = _.take(ans, 5);
 
-  sendConsultant(recipientId);
+    sendConsultant(recipientId);
+  });
 }
 
 /*
@@ -621,7 +625,7 @@ function sendHelloMessage(recipientId) {
  * sned service
  */
 function sendService(recipientId, keywords) {
-  listener[recipientId] = 0;
+  client.del(recipientId);
 
   const ans = team.search(keywords);
   if (ans.length <= 0) {
