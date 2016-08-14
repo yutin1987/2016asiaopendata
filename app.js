@@ -576,15 +576,19 @@ function sendReply(recipientId, keywords) {
       return;
     }
 
+    let idx = 0;
+    let lpush;
     client.del('answer::' + recipientId, () => {
-      for (var i = 0; i < 5; i++) {
+      lpush = () => {
         const item = ans.pop();
-        if (item) {
-          client.lpush('answer::' + recipientId, item.answer);
+        if (item && idx < 5) {
+          client.lpush('answer::' + recipientId, item.answer, lpush);
+          idx += 1;
+          return;
         }
-      }
 
-      sendConsultant(recipientId);
+        sendConsultant(recipientId);
+      }
     })
   });
 }
@@ -677,7 +681,7 @@ function sendService(recipientId, keywords) {
 }
 
 function sendConsultant(recipientId) {
-  client.lpop('answer::' + recipientId, (err, message) => {
+  client.rpop('answer::' + recipientId, (err, message) => {
     console.log('answer::', err, message);
     if (err || !message) {
       sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
