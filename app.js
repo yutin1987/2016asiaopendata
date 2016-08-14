@@ -19,12 +19,13 @@ const
   request = require('request'),
   Fuse = require('fuse.js'),
   Promise = require("bluebird"),
+  redis = require('redis'),
   _ = require('lodash');
 
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
 
-const client = require('redis').createClient(process.env.REDIS_URL);
+const client = redis.createClient(process.env.REDIS_URL);
 client.on("error", function (err) {
   console.log("Redis Error " + err);
 });
