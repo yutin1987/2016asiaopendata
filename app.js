@@ -27,6 +27,7 @@ const pleonasm = new RegExp('(' + require('./data/pleonasm.json').join('|') + ')
 const hello = ['嗨', '你好', '早安', '安安', 'hi', 'hello', '早', '請問'];
 
 const listener = {};
+const cacheAns = {};
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -570,6 +571,8 @@ function sendHelloMessage(recipientId) {
     '(>////<) 需要什麼服務呢？'
   ];
 
+  console.log(ans[_.random(0, ans.length - 1)]);
+
   callSendAPI({
     recipient: {
       id: recipientId
@@ -650,12 +653,14 @@ function sendService(recipientId, keywords) {
 function sendConsultant(recipientId, keywords) {
   const ans = qna.search(keywords);
   if (ans.length <= 0) {
-    sendTextMessage(recipientId, '問題有點複雜，將請專人處理 <( _ _ )>');
+    sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
     setTimeout(() => sendHelloMessage(recipientId), 1000);
     return;
   }
 
-  const message = ans[0].answer;
+  cacheAns[recipientId] = _.take(ans, 5);
+
+  const message = cacheAns[recipientId].pop().answer;
 
   const buttons = [{
     type: "postback",
