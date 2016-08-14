@@ -704,14 +704,14 @@ function sendConsultant(recipientId) {
     if (phone3) phone = phone3[1].replace('-', '');
 
     if (phone) {
-      buttons.push({
-        type: "phone_number",
-        title: "撥打至02-" + phone,
-        payload: "+8862" + phone,
-      })
+      // buttons.push({
+      //   type: "phone_number",
+      //   title: "撥打至02-" + phone,
+      //   payload: "+8862" + phone,
+      // })
     }
 
-    callSendAPI({
+    const messageData = {
       recipient: {
         id: recipientId
       },
@@ -725,9 +725,10 @@ function sendConsultant(recipientId) {
           }
         }
       }
-    });
-  });
+    };
 
+    callSendAPI(messageData);
+  });
 }
 
 /*
