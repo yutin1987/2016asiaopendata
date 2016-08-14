@@ -585,6 +585,7 @@ function sendReply(recipientId, keywords) {
       Promise
         .mapSeries([0, 1, 2, 3, 4], (idx) => {
           const item = ans.pop();
+          console.log('item.answer', item.answer);
           if (item) {
             return client.lpushAsync('answer::' + recipientId, item.answer)
           } else {
