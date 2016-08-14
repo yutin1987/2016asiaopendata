@@ -17,9 +17,16 @@ const
   express = require('express'),
   https = require('https'),
   request = require('request'),
-  Fuse = require('fuse.js');
+  Fuse = require('fuse.js'),
+  _ = require('lodash');
 
 const taipei1999 = require('./data/taipei1999.json');
+const service = require('./data/service.json');
+
+const pleonasm = new RegExp(require('./data/pleonasm.json').join('|'), 'gi');
+const hello = ['嗨', '你好', '早安', '安安', 'hi', 'hello', '早', '請問'];
+
+const listener = {};
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -28,6 +35,7 @@ app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
 
 const qna = new Fuse(taipei1999, { keys: ['question', 'answer'] });
+const team = new Fuse(service, { keys: ['title', 'service'] });
 
 /*
  * Be sure to setup your config values before running this code. You can
@@ -312,7 +320,7 @@ function receivedMessage(event) {
         sendAccountLinking(senderID);
 
       default:
-        sendTextMessage(senderID, messageText);
+        sendReply(senderID, _.replace(messageText, pleonasm, ' '));
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
@@ -343,31 +351,6 @@ function receivedDeliveryConfirmation(event) {
   }
 
   console.log("All message before %d were delivered.", watermark);
-}
-
-
-/*
- * Postback Event
- *
- * This event is called when a postback is tapped on a Structured Message.
- * https://developers.facebook.com/docs/messenger-platform/webhook-reference/postback-received
- *
- */
-function receivedPostback(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-  var timeOfPostback = event.timestamp;
-
-  // The 'payload' param is a developer-defined field which is set in a postback
-  // button for Structured Messages.
-  var payload = event.postback.payload;
-
-  console.log("Received postback for user %d and page %d with payload '%s' " +
-    "at %d", senderID, recipientID, payload, timeOfPostback);
-
-  // When a postback is called, we'll send a message back to the sender to
-  // let them know it was successful
-  // sendTextMessage(senderID, "Postback called");
 }
 
 /*
@@ -518,59 +501,165 @@ function sendFileMessage(recipientId) {
   callSendAPI(messageData);
 }
 
+
 /*
- * Send a text message using the Send API.
+ * Postback Event
+ *
+ * This event is called when a postback is tapped on a Structured Message.
+ * https://developers.facebook.com/docs/messenger-platform/webhook-reference/postback-received
  *
  */
-function sendTextMessage(recipientId, messageText) {
-  if (/^(Hello|你好|嗨|hi|請問)$/gi.test(messageText)) {
+function receivedPostback(event) {
+  var senderID = event.sender.id;
+  var recipientID = event.recipient.id;
+  var timeOfPostback = event.timestamp;
+
+  // The 'payload' param is a developer-defined field which is set in a postback
+  // button for Structured Messages.
+  var payload = event.postback.payload;
+
+  console.log("Received postback for user %d and page %d with payload '%s' " +
+    "at %d", senderID, recipientID, payload, timeOfPostback);
+
+  // When a postback is called, we'll send a message back to the sender to
+  // let them know it was successful
+
+  switch (payload) {
+    case "DEFINED_PAYLOAD_ENTER_CONSULTANT":
+      sendTextMessage(senderID, "請直接告訴我，想諮詢的問題 (=^_^=)");
+      break;
+    case "DEFINED_PAYLOAD_ENTER_ADAPTER":
+      sendTextMessage(senderID, "請直接告訴我，想辦理的業務事項 (=^_^=)");
+      listener[senderID] = Date.now() + (60 * 1000);
+      break;
+    case "DEFINED_PAYLOAD_ENTER_PETITION":
+      sendTextMessage(senderID, "請直接告訴我，申訴的事情 (=^_^=)");
+      break;
+    case "DEFINED_PAYLOAD_ENTER_ASSIGN":
+      sendTextMessage(senderID, "請問在哪裡發生了什麼事情？需要什麼協助？ (=^_^=)");
+      break;
+    default:
+  }
+}
+
+/*
+ * Send Reply
+ */
+ function sendReply(recipientId, keywords) {
+   const regHello = new RegExp(hello.join('|', 'gi');
+   if (_.trim(_.replace(keywords, regHello, '')) === '') {
+     sendHelloMessage(recipientId);
+     return;
+   };
+
+   if (listener[recipientId] <= Date.now()) {
+     sendService(recipientId, keywords);
+     return;
+   }
+
+   sendConsultant(recipientId, keywords);
+ }
+
+/*
+ * Send Hello
+ */
+function sendHelloMessage(recipientId) {
+  const ans = [
+    'Hello!! May I help you?',
+    '您好!! 我是不是很可愛？可以幫你什麼忙？',
+    '(>////<) 需要什麼服務呢？'
+  ];
+
+  callSendAPI({
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "button",
+          text: ans[_.random(0, ans.length - 1)],
+          buttons: [{
+            type: "postback",
+            title: "諮詢市政服務",
+            payload: "DEFINED_PAYLOAD_ENTER_CONSULTANT"
+          },{
+            type: "postback",
+            title: "轉接業務單位",
+            payload: "DEFINED_PAYLOAD_ENTER_ADAPTER"
+          },{
+            type: "postback",
+            title: "申訴陳情舉發",
+            payload: "DEFINED_PAYLOAD_ENTER_PETITION"
+          },{
+            type: "postback",
+            title: "即時現場派工",
+            payload: "DEFINED_PAYLOAD_ENTER_ASSIGN"
+          }],
+        }
+      }
+    }
+  });
+
+
+  function sendService(recipientId, keywords) {
+    listener[recipientId] = 0;
+
+    const ans = team.search(keywords);
+    if (ans.length <= 0) {
+      sendTextMessage(recipientId, '找不到負責的單位，建議直接撥打1999 <( _ _ )>');
+      setTimeout(() => sendHelloMessage(recipientId), 1000);
+      return;
+    }
+
+    const phone = /02-([\d])/gi.exec(ans.phone);
+
     callSendAPI({
       recipient: {
         id: recipientId
       },
       message: {
-        text: '你好! 我是不是很可愛',
-        metadata: "DEVELOPER_DEFINED_METADATA"
+        attachment: {
+          type: "template",
+          payload: {
+            template_type: "button",
+            text: ans.title + " 聯絡電話：" + ans.phone,
+            buttons: {
+              type: "postback",
+              title: "這不是我要的回答",
+              payload: "DEFINED_PAYLOAD_FEEBACK_NO"
+            }, {
+              type: "postback",
+              title: "謝謝，這對我有幫助",
+              payload: "DEFINED_PAYLOAD_FEEBACK_YES"
+            },{
+              type: "phone_number",
+              title: "撥打至02-" + phone[1],
+              payload: "+8862" + phone[1],
+            }
+          }
+        }
       }
     });
-
-    return;
   }
 
-  const ans = qna.search(messageText.replace(/(？|怎麼|如何|處理|哪裡|可以)/gi, ''));
-  if (ans.length > 0) {
-    sendButtonMessage(recipientId, ans[0].answer.substr(0, 200) + (ans[0].answer.length > 200 ? '...' : ''));
+function sendConsultant(recipientId, keywords) {
+  const ans = qna.search(keywords);
+  if (ans.length <= 0) {
+    sendTextMessage(recipientId, '問題有點複雜，將請專人處理 <( _ _ )>');
+    setTimeout(() => sendHelloMessage(recipientId), 1000);
     return;
   }
-
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      text: '問題有點複雜，將請專人處理（抓頭',
-      metadata: "DEVELOPER_DEFINED_METADATA"
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a button message using the Send API.
- *
- */
-function sendButtonMessage(recipientId, message) {
-  console.log(recipientId, message);
 
   const buttons = [{
     type: "postback",
     title: "這不是我要的回答",
-    payload: "DEVELOPER_DEFINED_PAYLOAD"
+    payload: "DEFINED_PAYLOAD_FEEBACK_NO"
   }, {
     type: "postback",
     title: "謝謝，這對我有幫助",
-    payload: "DEVELOPER_DEFINED_PAYLOAD"
+    payload: "DEFINED_PAYLOAD_FEEBACK_YES"
   }];
 
   let phone;
@@ -591,7 +680,7 @@ function sendButtonMessage(recipientId, message) {
     })
   }
 
-  var messageData = {
+  callSendAPI({
     recipient: {
       id: recipientId
     },
@@ -605,10 +694,63 @@ function sendButtonMessage(recipientId, message) {
         }
       }
     }
-  };
-
-  callSendAPI(messageData);
+  });
 }
+
+/*
+ * Send a text message using the Send API.
+ *
+ */
+ function sendTextMessage(recipientId, messageText) {
+   var messageData = {
+     recipient: {
+       id: recipientId
+     },
+     message: {
+       text: messageText,
+       metadata: "DEVELOPER_DEFINED_METADATA"
+     }
+   };
+
+   callSendAPI(messageData);
+ }
+
+/*
+ * Send a button message using the Send API.
+ *
+ */
+
+ function sendButtonMessage(recipientId) {
+   var messageData = {
+     recipient: {
+       id: recipientId
+     },
+     message: {
+       attachment: {
+         type: "template",
+         payload: {
+           template_type: "button",
+           text: "This is test text",
+           buttons:[{
+             type: "web_url",
+             url: "https://www.oculus.com/en-us/rift/",
+             title: "Open Web URL"
+           }, {
+             type: "postback",
+             title: "Trigger Postback",
+             payload: "DEVELOPED_DEFINED_PAYLOAD"
+           }, {
+             type: "phone_number",
+             title: "Call Phone Number",
+             payload: "+16505551234"
+           }]
+         }
+       }
+     }
+   };
+
+   callSendAPI(messageData);
+ }
 
 /*
  * Send a Structured Message (Generic Message type) using the Send API.
