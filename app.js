@@ -539,6 +539,9 @@ function receivedPostback(event) {
     case "DEFINED_PAYLOAD_ENTER_ASSIGN":
       sendTextMessage(senderID, "請問在哪裡發生了什麼事情？需要什麼協助？ (=^_^=)");
       break;
+    case "DEFINED_PAYLOAD_FEEBACK_NO":
+      sendConsultant(senderID);
+      break;
     default:
   }
 }
@@ -558,7 +561,16 @@ function sendReply(recipientId, keywords) {
     return;
   }
 
-  sendConsultant(recipientId, keywords);
+  const ans = qna.search(keywords);
+  if (ans.length <= 0) {
+    sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
+    setTimeout(() => sendHelloMessage(recipientId), 1000);
+    return;
+  }
+
+  cacheAns[recipientId] = _.take(ans, 5);
+
+  sendConsultant(recipientId);
 }
 
 /*
@@ -650,15 +662,10 @@ function sendService(recipientId, keywords) {
   });
 }
 
-function sendConsultant(recipientId, keywords) {
-  const ans = qna.search(keywords);
-  if (ans.length <= 0) {
-    sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
-    setTimeout(() => sendHelloMessage(recipientId), 1000);
+function sendConsultant(recipientId) {
+  if (!cacheAns[recipientId] || cacheAns[recipientId].length <=  0) {
     return;
   }
-
-  cacheAns[recipientId] = _.take(ans, 5);
 
   const message = cacheAns[recipientId].pop().answer;
 
