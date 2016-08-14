@@ -720,7 +720,7 @@ function sendConsultant(recipientId) {
           type: "template",
           payload: {
             template_type: "button",
-            text: message.substr(0, 200) + message.length > 200 : '...' : '',
+            text: message.substr(0, 200) + message.length > 200 ? '...' : '',
             buttons: buttons,
           }
         }
