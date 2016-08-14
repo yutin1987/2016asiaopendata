@@ -23,7 +23,7 @@ const
 const taipei1999 = require('./data/taipei1999.json');
 const service = require('./data/service.json');
 
-const pleonasm = new RegExp(require('./data/pleonasm.json').join('|'), 'gi');
+const pleonasm = new RegExp('(' + require('./data/pleonasm.json').join('|') + ')', 'gi');
 const hello = ['嗨', '你好', '早安', '安安', 'hi', 'hello', '早', '請問'];
 
 const listener = {};
@@ -545,20 +545,20 @@ function receivedPostback(event) {
 /*
  * Send Reply
  */
- function sendReply(recipientId, keywords) {
-   const regHello = new RegExp(hello.join('|', 'gi'));
-   if (_.trim(_.replace(keywords, regHello, '')) === '') {
-     sendHelloMessage(recipientId);
-     return;
-   };
+function sendReply(recipientId, keywords) {
+  const regHello = new RegExp(hello.join('|', 'gi'));
+  if (_.trim(_.replace(keywords, regHello, '')) === '') {
+    sendHelloMessage(recipientId);
+    return;
+  };
 
-   if (listener[recipientId] <= Date.now()) {
-     sendService(recipientId, keywords);
-     return;
-   }
+  if (listener[recipientId] <= Date.now()) {
+    sendService(recipientId, keywords);
+    return;
+  }
 
-   sendConsultant(recipientId, keywords);
- }
+  sendConsultant(recipientId, keywords);
+}
 
 /*
  * Send Hello
@@ -601,48 +601,51 @@ function sendHelloMessage(recipientId) {
       }
     }
   });
+}
 
+/*
+ * sned service
+ */
+function sendService(recipientId, keywords) {
+  listener[recipientId] = 0;
 
-  function sendService(recipientId, keywords) {
-    listener[recipientId] = 0;
+  const ans = team.search(keywords);
+  if (ans.length <= 0) {
+    sendTextMessage(recipientId, '找不到負責的單位，建議直接撥打1999 <( _ _ )>');
+    setTimeout(() => sendHelloMessage(recipientId), 1000);
+    return;
+  }
 
-    const ans = team.search(keywords);
-    if (ans.length <= 0) {
-      sendTextMessage(recipientId, '找不到負責的單位，建議直接撥打1999 <( _ _ )>');
-      setTimeout(() => sendHelloMessage(recipientId), 1000);
-      return;
-    }
+  const phone = /02-([\d])/gi.exec(ans.phone);
 
-    const phone = /02-([\d])/gi.exec(ans.phone);
-
-    callSendAPI({
-      recipient: {
-        id: recipientId
-      },
-      message: {
-        attachment: {
-          type: "template",
-          payload: {
-            template_type: "button",
-            text: ans.title + " 聯絡電話：" + ans.phone,
-            buttons: [{
-              type: "postback",
-              title: "這不是我要的回答",
-              payload: "DEFINED_PAYLOAD_FEEBACK_NO"
-            }, {
-              type: "postback",
-              title: "謝謝，這對我有幫助",
-              payload: "DEFINED_PAYLOAD_FEEBACK_YES"
-            }, {
-              type: "phone_number",
-              title: "撥打至02-" + phone[1],
-              payload: "+8862" + phone[1],
-            }]
-          }
+  callSendAPI({
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "button",
+          text: ans.title + " 聯絡電話：" + ans.phone,
+          buttons: [{
+            type: "postback",
+            title: "這不是我要的回答",
+            payload: "DEFINED_PAYLOAD_FEEBACK_NO"
+          }, {
+            type: "postback",
+            title: "謝謝，這對我有幫助",
+            payload: "DEFINED_PAYLOAD_FEEBACK_YES"
+          }, {
+            type: "phone_number",
+            title: "撥打至02-" + phone[1],
+            payload: "+8862" + phone[1],
+          }]
         }
       }
-    });
-  }
+    }
+  });
+}
 
 function sendConsultant(recipientId, keywords) {
   const ans = qna.search(keywords);
