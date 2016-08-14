@@ -18,6 +18,7 @@ const
   https = require('https'),
   request = require('request'),
   Fuse = require('fuse.js'),
+  Promise = require("bluebird"),
   _ = require('lodash');
 
 const client = require('redis').createClient(process.env.REDIS_URL);
@@ -552,7 +553,7 @@ function receivedPostback(event) {
 /*
  * Send Reply
  */
-async function sendReply(recipientId, keywords) {
+function sendReply(recipientId, keywords) {
   console.log('recipientId', recipientId);
 
   const regHello = new RegExp('(' + hello.join('|', 'gi') + ')', 'gi');
@@ -576,19 +577,20 @@ async function sendReply(recipientId, keywords) {
       return;
     }
 
-    try {
-      await client.del('answer::' + recipientId);
-      for (var i = 0; i < 5; i++) {
-        const item = ans.pop();
-        if (item) {
-          await client.lpush('answer::' + recipientId, item.answer);
-        }
-      }
-    } catch (e) {
-      console.log('error', e);
-    } finally {
-      sendConsultant(recipientId);
-    }
+    client.del('answer::' + recipientId, () => {
+      Promise
+        .mapSeries([0, 1, 2, 3, 4], (idx) => {
+          const item = ans.pop();
+          if (item) {
+            return client.lpushAsync('answer::' + recipientId, item.answer)
+          } else {
+            return;
+          }
+        })
+        .then(() => {
+          sendConsultant(recipientId);
+        })
+    });
   });
 }
 
