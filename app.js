@@ -577,7 +577,9 @@ function sendReply(recipientId, keywords) {
 
     for (var i = 0; i < 5; i++) {
       const item = ans.pop();
-      client.lpush('answer::' + recipientId, item.answer);
+      if (item) {
+        client.lpush('answer::' + recipientId, item.answer);
+      }
     }
 
     sendConsultant(recipientId);
