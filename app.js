@@ -575,14 +575,16 @@ function sendReply(recipientId, keywords) {
       return;
     }
 
-    for (var i = 0; i < 5; i++) {
-      const item = ans.pop();
-      if (item) {
-        client.lpush('answer::' + recipientId, item.answer);
+    client.del('answer::' + recipientId, () => {
+      for (var i = 0; i < 5; i++) {
+        const item = ans.pop();
+        if (item) {
+          client.lpush('answer::' + recipientId, item.answer);
+        }
       }
-    }
 
-    sendConsultant(recipientId);
+      sendConsultant(recipientId);
+    })
   });
 }
 
