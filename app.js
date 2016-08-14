@@ -704,12 +704,15 @@ function sendConsultant(recipientId) {
     if (phone3) phone = phone3[1].replace('-', '');
 
     if (phone) {
-      // buttons.push({
-      //   type: "phone_number",
-      //   title: "撥打至02-" + phone,
-      //   payload: "+8862" + phone,
-      // })
+      buttons.push({
+        type: "phone_number",
+        title: "撥打至02-" + phone,
+        payload: "+8862" + phone,
+      });
     }
+
+    console.log('message.substr(0, 100)', message.substr(0, 100));
+    console.log('buttons', buttons);
 
     const messageData = {
       recipient: {
@@ -720,7 +723,7 @@ function sendConsultant(recipientId) {
           type: "template",
           payload: {
             template_type: "button",
-            text: message.substr(0, 100) + message.length > 100 ? '...' : '',
+            text: message.substr(0, 100) + (message.length > 100 ? '...' : ''),
             buttons: buttons,
           }
         }
