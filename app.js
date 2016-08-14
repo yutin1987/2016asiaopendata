@@ -546,7 +546,7 @@ function receivedPostback(event) {
  * Send Reply
  */
  function sendReply(recipientId, keywords) {
-   const regHello = new RegExp(hello.join('|', 'gi');
+   const regHello = new RegExp(hello.join('|', 'gi'));
    if (_.trim(_.replace(keywords, regHello, '')) === '') {
      sendHelloMessage(recipientId);
      return;
