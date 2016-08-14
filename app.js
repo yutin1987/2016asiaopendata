@@ -568,6 +568,7 @@ function sendReply(recipientId, keywords) {
       return;
     }
 
+    console.log('keywords', keywords);
     const ans = qna.search(keywords);
     if (ans.length <= 0) {
       sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
