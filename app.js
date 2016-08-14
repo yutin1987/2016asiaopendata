@@ -534,7 +534,7 @@ function receivedPostback(event) {
       break;
     case "DEFINED_PAYLOAD_ENTER_ADAPTER":
       sendTextMessage(senderID, "請直接告訴我，想辦理的業務事項 (=^_^=)");
-      client.set(senderID, 'adapter');
+      client.set(senderID, 'adapter', 60);
       break;
     case "DEFINED_PAYLOAD_ENTER_PETITION":
       sendTextMessage(senderID, "請直接告訴我，申訴的事情 (=^_^=)");
@@ -637,7 +637,7 @@ function sendService(recipientId, keywords) {
     return;
   }
 
-  const phone = /02-([\d])/gi.exec(ans.phone);
+  const phone = /02-([\d]+)/gi.exec(ans[0].phone);
 
   callSendAPI({
     recipient: {
@@ -648,7 +648,7 @@ function sendService(recipientId, keywords) {
         type: "template",
         payload: {
           template_type: "button",
-          text: ans.title + " 聯絡電話：" + ans.phone,
+          text: ans[0].title + " 聯絡電話：" + ans[0].phone,
           buttons: [{
             type: "postback",
             title: "這不是我要的回答",
