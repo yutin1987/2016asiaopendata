@@ -524,10 +524,6 @@ function receivedPostback(event) {
 
   // When a postback is called, we'll send a message back to the sender to
   // let them know it was successful
-
-  console.log('senderID', senderID);
-  console.log('recipientID', recipientID);
-  console.log('payload', payload);
   switch (payload) {
     case "DEFINED_PAYLOAD_ENTER_CONSULTANT":
       sendTextMessage(senderID, "請直接告訴我，想諮詢的問題 (=^_^=)");
@@ -589,7 +585,8 @@ function sendHelloMessage(recipientId) {
   ];
 
   console.log('recipientId', recipientId);
-  callSendAPI({
+
+  const messageData = {
     recipient: {
       id: recipientId
     },
@@ -607,11 +604,17 @@ function sendHelloMessage(recipientId) {
             type: "postback",
             title: "轉接業務單位",
             payload: "DEFINED_PAYLOAD_ENTER_ADAPTER"
+          },{
+            type: "postback",
+            title: "申訴陳情舉發",
+            payload: "DEFINED_PAYLOAD_ENTER_PETITION"
           }],
         }
       }
     }
-  });
+  };
+
+  callSendAPI(messageData);
 }
 
 /*
@@ -659,6 +662,7 @@ function sendService(recipientId, keywords) {
 }
 
 function sendConsultant(recipientId) {
+  console.log(cacheAns[recipientId]);
   if (!cacheAns[recipientId] || cacheAns[recipientId].length <=  0) {
     return;
   }
