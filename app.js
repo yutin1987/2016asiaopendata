@@ -677,8 +677,8 @@ function sendService(recipientId, keywords) {
 
 function sendConsultant(recipientId) {
   client.lpop('answer::' + recipientId, (err, message) => {
-    console.log('answer', err, message);
     if (err || !message) {
+      sendTextMessage(recipientId, '將轉接專人處理 <( _ _ )>');
       return;
     }
 
