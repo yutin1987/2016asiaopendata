@@ -561,7 +561,7 @@ function sendReply(recipientId, keywords) {
     return;
   };
 
-  client.get(senderID, (err, reply) => {
+  client.get(recipientId, (err, reply) => {
     console.log(reply);
     if (!err && reply === 'adapter') {
       sendService(recipientId, keywords);
