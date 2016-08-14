@@ -22,7 +22,7 @@ const
 
 const client = require('redis').createClient(process.env.REDIS_URL);
 client.on("error", function (err) {
-  console.log("Error " + err);
+  console.log("Redis Error " + err);
 });
 
 const taipei1999 = require('./data/taipei1999.json');
@@ -534,7 +534,7 @@ function receivedPostback(event) {
       break;
     case "DEFINED_PAYLOAD_ENTER_ADAPTER":
       sendTextMessage(senderID, "請直接告訴我，想辦理的業務事項 (=^_^=)");
-      client.set(senderID, 'adapter', 60);
+      client.set(senderID, 'adapter');
       break;
     case "DEFINED_PAYLOAD_ENTER_PETITION":
       sendTextMessage(senderID, "請直接告訴我，申訴的事情 (=^_^=)");
@@ -562,7 +562,7 @@ function sendReply(recipientId, keywords) {
   };
 
   client.get(recipientId, (err, reply) => {
-    console.log(reply);
+    console.log('redis reply', err, reply);
     if (!err && reply === 'adapter') {
       sendService(recipientId, keywords);
       return;
@@ -575,7 +575,10 @@ function sendReply(recipientId, keywords) {
       return;
     }
 
-    cacheAns[recipientId] = _.take(ans, 5);
+    for (var i = 0; i < 5; i++) {
+      const item = temp.pop();
+      client.lpush('answer::' + recipientId, item.answer);
+    }
 
     sendConsultant(recipientId);
   });
@@ -674,51 +677,57 @@ function sendConsultant(recipientId) {
     return;
   }
 
-  const message = cacheAns[recipientId].pop().answer;
+  client.lpop('answer::' + recipientId, (err, message) => {
+    console.log('answer', err, message);
+    if (err || !message) {
+      return;
+    }
 
-  const buttons = [{
-    type: "postback",
-    title: "這不是我要的回答",
-    payload: "DEFINED_PAYLOAD_FEEBACK_NO"
-  }, {
-    type: "postback",
-    title: "謝謝，這對我有幫助",
-    payload: "DEFINED_PAYLOAD_FEEBACK_YES"
-  }];
+    const buttons = [{
+      type: "postback",
+      title: "這不是我要的回答",
+      payload: "DEFINED_PAYLOAD_FEEBACK_NO"
+    }, {
+      type: "postback",
+      title: "謝謝，這對我有幫助",
+      payload: "DEFINED_PAYLOAD_FEEBACK_YES"
+    }];
 
-  let phone;
-  const phone1 = /02([\-\d]{8,})/gi.exec(message);
-  if (phone1) phone = phone1[1].replace('-', '');
+    let phone;
+    const phone1 = /02([\-\d]{8,})/gi.exec(message);
+    if (phone1) phone = phone1[1].replace('-', '');
 
-  const phone2 = /([\d]{8})/gi.exec(message);
-  if (phone2) phone = phone2[1]
+    const phone2 = /([\d]{8})/gi.exec(message);
+    if (phone2) phone = phone2[1]
 
-  const phone3 = /([\d]{4}-[\d]{4})/gi.exec(message);
-  if (phone3) phone = phone3[1].replace('-', '');
+    const phone3 = /([\d]{4}-[\d]{4})/gi.exec(message);
+    if (phone3) phone = phone3[1].replace('-', '');
 
-  if (phone) {
-    buttons.push({
-      type: "phone_number",
-      title: "撥打至02-" + phone,
-      payload: "+8862" + phone,
-    })
-  }
+    if (phone) {
+      buttons.push({
+        type: "phone_number",
+        title: "撥打至02-" + phone,
+        payload: "+8862" + phone,
+      })
+    }
 
-  callSendAPI({
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "button",
-          text: message,
-          buttons: buttons,
+    callSendAPI({
+      recipient: {
+        id: recipientId
+      },
+      message: {
+        attachment: {
+          type: "template",
+          payload: {
+            template_type: "button",
+            text: message,
+            buttons: buttons,
+          }
         }
       }
-    }
+    });
   });
+
 }
 
 /*
