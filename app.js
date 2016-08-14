@@ -625,7 +625,7 @@ function sendHelloMessage(recipientId) {
           payload: {
             template_type: "button",
             text: ans.title + " 聯絡電話：" + ans.phone,
-            buttons: {
+            buttons: [{
               type: "postback",
               title: "這不是我要的回答",
               payload: "DEFINED_PAYLOAD_FEEBACK_NO"
@@ -633,11 +633,11 @@ function sendHelloMessage(recipientId) {
               type: "postback",
               title: "謝謝，這對我有幫助",
               payload: "DEFINED_PAYLOAD_FEEBACK_YES"
-            },{
+            }, {
               type: "phone_number",
               title: "撥打至02-" + phone[1],
               payload: "+8862" + phone[1],
-            }
+            }]
           }
         }
       }
