@@ -28,7 +28,6 @@
     "node": "~4.1.2"
   },
   "devDependencies": {
-    "request": "^2.74.0",
     "xmldom": "^0.1.22"
   }
 }
